@@ -29,7 +29,7 @@ ui <- shinyUI(fluidPage(
 
 server <- function(input, output, session) {
   
-  session$reinicia<-FALSE
+  session$reinicia<-TRUE
   
   
   init<-function(n, reinicia, session){
@@ -83,3 +83,7 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui = ui, server = server)
+
+
+#  deployApp( appDir="/Users/h501uvma/github/shiny/median", appName="median")
+
