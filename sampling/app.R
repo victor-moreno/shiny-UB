@@ -3,56 +3,45 @@ library(ggplot2)
 
 ## modified from  "Sampling Regimes" by Jared Knwoles http://www.showmeshiny.com/sampling-regimes/
 
-# Sampling examples
-probs<-c(.1,.2,.4,.4)
-
-###############
-
-stratified_sampling<-function(df, size) {
-  o<-lapply( unique(df$z), function(x) {
-    s<-df[df$z==x,]
-    s[sample(1:NROW(s), size),]})
-  do.call("rbind",o)
-}
-
-generateData<-function(i, obs){
-    restart<-i
-    data.frame(x=rnorm(obs),y=runif(obs),
-                      z=sample(c("A","B","C","D"),obs,replace=TRUE,prob=probs))
-}
-
-###############
-# Shiny
-
-ui <- shinyUI(pageWithSidebar(
+ui <- shinyUI(fluidPage(
   
-  # Title
-  headerPanel("Sampling Regimes in R"),
-  
-  sidebarPanel(
-    sliderInput("obs","Size of Population:",
-                min=50,max=1000,value=100,step=50),
-    sliderInput("pr","Sampling proportion:",
-                min=0,max=1,value=.2,step=0.1),
-    selectInput("sampling", "Choose a sampling strategy:", 
-                choices = c("1 each Np", "Random", "Cluster randomized", "Stratified")),
-	  actionButton("Restart", label = "Restart")			
-				
-  , width=3),
-  
-  # GGPLOT
-  
-  mainPanel(
-    plotOutput("distPlot"),
-    verbatimTextOutput("summary")
+  titlePanel("Sampling strategies"),
+  sidebarLayout(
+    
+    sidebarPanel(
+      sliderInput("obs","Size of Population:", min=50,max=1000,value=100,step=50),
+      sliderInput("pr","Sampling proportion:", min=0,max=1,value=.2,step=0.1),
+      selectInput("sampling", "Choose a sampling strategy:", 
+                  choices = c("1 each Np", "Random", "Cluster randomized", "Stratified")),
+      actionButton("Restart", label = "Restart"),
+      width=3),
+    
+    mainPanel(
+      plotOutput("distPlot"),
+      verbatimTextOutput("summary")
+    )
   )
-  
 ))
 
 server <- function(input,output){
   
+  generateData<-function(i, obs){
+    probs<-c(.1,.2,.4,.4)  
+    restart<-i
+    data.frame(x=rnorm(obs),y=runif(obs),
+               z=sample(c("A","B","C","D"),obs,replace=TRUE,prob=probs))
+  }
+  
+  stratified_sampling<-function(df, size) {
+    o<-lapply( unique(df$z), function(x) {
+      s<-df[df$z==x,]
+      s[sample(1:NROW(s), size),]})
+    do.call("rbind",o)
+  }
+  
+  
   POPinput <- reactive({ generateData( input$Restart, input$obs ) })  
-
+  
   SAMPinput <- reactive({
     n<-input$obs
     p<-input$pr
@@ -61,13 +50,13 @@ server <- function(input,output){
            "1 each Np" = POPinput()[(1:n) %/% N ==0,],
            "Random" = POPinput()[sample(1:n, size=N),],
            "Cluster randomized" = POPinput()[POPinput()$z %in% sample(unique(POPinput()$z),2),],
-           "Stratified"=stratified_sampling(POPinput(),size=ceiling(min( table(POPinput()$z)*p)))
-           )
+           "Stratified"=stratified_sampling(POPinput(),size=ceiling(min(table(POPinput()$z)*p)))
+    )
   })
   
   output$distPlot<-renderPlot({
     p<-ggplot()+geom_point(aes(x=x,y=y),data=POPinput())+
-      geom_point(aes(x=x,y=y),data=SAMPinput(),color=I('blue'),shape=0,size=I(4))+
+      geom_point(aes(x=x,y=y),data=SAMPinput(),color=I('blue'),shape=0,size=I(4))+ 
       facet_wrap(~z) 
     print(p)
   })
@@ -77,7 +66,7 @@ server <- function(input,output){
     group<-factor(SAMPinput()[,"z"], levels=c("A","B","C","D"))
     cat("Samples by group (n / %):\n")
     sa<-table(group)
-    options(warn=FALSE)
+    options(warn=-1)
     print(formatC(sa, digits=0, width=5, format="d"), quo=FALSE)
     pr<-round(table(group)/table(population)*100,1)
     names(pr)<-NULL
@@ -87,4 +76,3 @@ server <- function(input,output){
 }
 
 shinyApp(ui = ui, server = server)
-
