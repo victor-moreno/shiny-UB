@@ -85,5 +85,3 @@ server <- function(input, output, session) {
 shinyApp(ui = ui, server = server)
 
 
-#  deployApp( appDir="/Users/h501uvma/github/shiny/median", appName="median")
-
