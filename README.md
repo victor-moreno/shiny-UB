@@ -1,4 +1,4 @@
-shiny
+shiny-UB
 =====
 
 shiny applications for teaching statistics
