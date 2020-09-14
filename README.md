@@ -3,8 +3,8 @@ shiny
 
 shiny applications for teaching statistics
 
-you can test them at https://ub-biostats.shinyapps.io:
+you can test them at https://shiny.snpstats.net/UB:
 
 eg:
-https://ub-biostats.shinyapps.io/median/
+https://shiny.snpstats.net/UB/median/
 
